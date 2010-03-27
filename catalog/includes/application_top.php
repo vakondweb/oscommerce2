@@ -33,8 +33,8 @@
     }
   }
 
-// define the project version
-  define('PROJECT_VERSION', 'osCommerce Online Merchant v2.2 RC2a');
+// define the project version --- obsolete, now retrieved with tep_get_version()
+  define('PROJECT_VERSION', 'osCommerce Online Merchant v2.2');
 
 // some code to solve compatibility issues
   require(DIR_WS_FUNCTIONS . 'compatibility.php');
@@ -143,6 +143,8 @@
     ini_set('session.cookie_path', $cookie_path);
     ini_set('session.cookie_domain', $cookie_domain);
   }
+
+  @ini_set('session.use_only_cookies', (SESSION_FORCE_COOKIE_USE == 'True') ? 1 : 0);
 
 // set the session ID if it exists
    if (isset($HTTP_POST_VARS[tep_session_name()])) {
@@ -417,6 +419,9 @@
 // auto expire special products
   require(DIR_WS_FUNCTIONS . 'specials.php');
   tep_expire_specials();
+
+  require(DIR_WS_CLASSES . 'osc_template.php');
+  $oscTemplate = new oscTemplate();
 
 // calculate category path
   if (isset($HTTP_GET_VARS['cPath'])) {

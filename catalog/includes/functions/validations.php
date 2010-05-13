@@ -62,13 +62,17 @@
       }
     }
 
+    $domain = explode('@', $email);
     if ($valid_address && ENTRY_EMAIL_ADDRESS_CHECK == 'true') {
-      $domain = explode('@', $email);
 
       if ( !checkdnsrr($domain[1], "MX") && !checkdnsrr($domain[1], "A") ) {
         $valid_address = false;
       }
     }
+  
+  if (substr($domain[0],0,4)=='www.') {
+          $valid_address = false;
+     }
 
     return $valid_address;
   }

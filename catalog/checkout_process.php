@@ -141,8 +141,6 @@
 
 // initialized for the email confirmation
   $products_ordered = '';
-  $subtotal = 0;
-  $total_tax = 0;
 
   for ($i=0, $n=sizeof($order->products); $i<$n; $i++) {
 // Stock Update - Joao Correia
@@ -157,7 +155,7 @@
                             WHERE p.products_id = '" . tep_get_prid($order->products[$i]['id']) . "'";
 // Will work with only one option for downloadable products
 // otherwise, we have to build the query dynamically with a loop
-        $products_attributes = $order->products[$i]['attributes'];
+        $products_attributes = (isset($order->products[$i]['attributes'])) ? $order->products[$i]['attributes'] : '';
         if (is_array($products_attributes)) {
           $stock_query_raw .= " AND pa.options_id = '" . $products_attributes[0]['option_id'] . "' AND pa.options_values_id = '" . $products_attributes[0]['value_id'] . "'";
         }
@@ -238,10 +236,6 @@
       }
     }
 //------insert customer choosen option eof ----
-    $total_weight += ($order->products[$i]['qty'] * $order->products[$i]['weight']);
-    $total_tax += tep_calculate_tax($total_products_price, $products_tax) * $order->products[$i]['qty'];
-    $total_cost += $total_products_price;
-
     $products_ordered .= $order->products[$i]['qty'] . ' x ' . $order->products[$i]['name'] . ' (' . $order->products[$i]['model'] . ') = ' . $currencies->display_price($order->products[$i]['final_price'], $order->products[$i]['tax'], $order->products[$i]['qty']) . $products_ordered_attributes . "\n";
   }
 
@@ -277,7 +271,7 @@
                     EMAIL_SEPARATOR . "\n";
     $payment_class = $$payment;
     $email_order .= $order->info['payment_method'] . "\n\n";
-    if ($payment_class->email_footer) { 
+    if (isset($payment_class->email_footer)) {
       $email_order .= $payment_class->email_footer . "\n\n";
     }
   }

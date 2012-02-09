@@ -12,10 +12,37 @@
 
   class oscTemplate {
     var $_title;
-    var $_header_tags = array();
+    var $_blocks = array();
+    var $_grid_container_width = 24;
+    var $_grid_content_width = 16;
+    var $_grid_column_width = 4;
 
     function oscTemplate() {
       $this->_title = TITLE;
+    }
+
+    function setGridContainerWidth($width) {
+      $this->_grid_container_width = $width;
+    }
+
+    function getGridContainerWidth() {
+      return $this->_grid_container_width;
+    }
+
+    function setGridContentWidth($width) {
+      $this->_grid_content_width = $width;
+    }
+
+    function getGridContentWidth() {
+      return $this->_grid_content_width;
+    }
+
+    function setGridColumnWidth($width) {
+      $this->_grid_column_width = $width;
+    }
+
+    function getGridColumnWidth() {
+      return $this->_grid_column_width;
     }
 
     function setTitle($title) {
@@ -26,57 +53,49 @@
       return $this->_title;
     }
 
-    function addHeaderTag($tag) {
-      $this->_header_tags[] = $tag;
+    function addBlock($block, $group) {
+      $this->_blocks[$group][] = $block;
     }
 
-    function getHeaderTags() {
-      if (!empty($this->_header_tags)) {
-        return implode("\n", $this->_header_tags);
+    function hasBlocks($group) {
+      return (isset($this->_blocks[$group]) && !empty($this->_blocks[$group]));
+    }
+
+    function getBlocks($group) {
+      if ($this->hasBlocks($group)) {
+        return implode("\n", $this->_blocks[$group]);
       }
     }
 
-    function buildHeaderTags() {
-      global $PHP_SELF;
+    function buildBlocks() {
+      global $language;
 
-      $req_module = substr(basename($PHP_SELF), 0, strpos(basename($PHP_SELF), '.'));
-      $directory = realpath(DIR_FS_CATALOG . DIR_WS_MODULES . 'header_tags/' . $req_module);
+      if ( defined('TEMPLATE_BLOCK_GROUPS') && tep_not_null(TEMPLATE_BLOCK_GROUPS) ) {
+        $tbgroups_array = explode(';', TEMPLATE_BLOCK_GROUPS);
 
-      if (substr($directory, 0, strlen(realpath(DIR_FS_CATALOG . DIR_WS_MODULES . 'header_tags'))) == realpath(DIR_FS_CATALOG . DIR_WS_MODULES . 'header_tags')) {
-        if (file_exists($directory)) {
-          $file_extension = substr($PHP_SELF, strrpos($PHP_SELF, '.'));
-          $directory_array = array();
-          if ($dir = @dir($directory)) {
-            while ($file = $dir->read()) {
-              if (!is_dir(DIR_FS_CATALOG . DIR_WS_MODULES . 'header_tags/' . $file)) {
-                if (substr($file, strrpos($file, '.')) == $file_extension) {
-                  $directory_array[] = $file;
-                }
+        foreach ($tbgroups_array as $group) {
+          $module_key = 'MODULE_' . strtoupper($group) . '_INSTALLED';
+
+          if ( defined($module_key) && tep_not_null(constant($module_key)) ) {
+            $modules_array = explode(';', constant($module_key));
+
+            foreach ( $modules_array as $module ) {
+              $class = substr($module, 0, strrpos($module, '.'));
+
+              if ( !class_exists($class) ) {
+                include(DIR_WS_LANGUAGES . $language . '/modules/' . $group . '/' . $module);
+                include(DIR_WS_MODULES . $group . '/' . $class . '.php');
+              }
+
+              $mb = new $class();
+
+              if ( $mb->isEnabled() ) {
+                $mb->execute();
               }
             }
-            sort($directory_array);
-            $dir->close();
-          }
-
-          foreach ($directory_array as $file) {
-            $module = 'ht_' . $this->_toCamel($req_module) . '_' . substr($file, 0, strpos($file, '.'));
-
-            if (!class_exists($module)) {
-              include($directory . '/' . $file);
-            }
-
-            call_user_func(array($module, 'parse'));
           }
         }
       }
-    }
-
-    function _toCamel($string) {
-      $parts = explode('_', $string);
-      $parts = $parts ? array_map('ucfirst', $parts) : array($string);
-      $parts[0] = strtolower(substr($parts[0], 0, 1)) . substr($parts[0], 1);
-
-      return implode('', $parts);
     }
   }
 ?>

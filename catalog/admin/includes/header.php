@@ -14,6 +14,7 @@
     echo $messageStack->output();
   }
 ?>
+
 <table border="0" width="100%" cellspacing="0" cellpadding="0">
   <tr>
     <td colspan="2"><?php echo '<a href="' . tep_href_link(FILENAME_DEFAULT, '', 'NONSSL') . '">' . tep_image(DIR_WS_IMAGES . 'oscommerce.png', 'osCommerce Online Merchant v' . tep_get_version()) . '</a>'; ?></td>

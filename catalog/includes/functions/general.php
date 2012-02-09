@@ -42,6 +42,9 @@
       }
     }
 
+    if ( strpos($url, '&amp;') !== false ) {
+      $url = str_replace('&amp;', '&', $url);
+    }
     header('Location: ' . $url);
 
     tep_exit();
@@ -108,7 +111,7 @@
 // Return a product's special price (returns nothing if there is no offer)
 // TABLES: products
   function tep_get_products_special_price($product_id) {
-    $product_query = tep_db_query("select specials_new_products_price from " . TABLE_SPECIALS . " where products_id = '" . (int)$product_id . "' and status");
+    $product_query = tep_db_query("select specials_new_products_price from " . TABLE_SPECIALS . " where products_id = '" . (int)$product_id . "' and status = 1");
     $product = tep_db_fetch_array($product_query);
 
     return $product['specials_new_products_price'];
@@ -479,11 +482,11 @@
 
     if ($html) {
 // HTML Mode
-      $HR = '<hr>';
-      $hr = '<hr>';
+      $HR = '<hr />';
+      $hr = '<hr />';
       if ( ($boln == '') && ($eoln == "\n") ) { // Values not specified, use rational defaults
-        $CR = '<br>';
-        $cr = '<br>';
+        $CR = '<br />';
+        $cr = '<br />';
         $eoln = $cr;
       } else { // Use values supplied
         $CR = $eoln . $boln;
@@ -666,7 +669,7 @@
 // Turn the flag off for future iterations
           $flag = 'off';
 
-          $objects[] = trim($pieces[$k]);
+          $objects[] = trim(preg_replace('/"/', ' ', $pieces[$k]));
 
           for ($j=0; $j<count($post_objects); $j++) {
             $objects[] = $post_objects[$j];
@@ -1036,7 +1039,7 @@
     if (SEND_EMAILS != 'true') return false;
 
     // Instantiate a new mail object
-    $message = new email(array('X-Mailer: osCommerce Mailer'));
+    $message = new email(array('X-Mailer: osCommerce'));
 
     // Build the text version
     $text = strip_tags($email_text);
@@ -1082,7 +1085,7 @@
     for ($i=0, $n=sizeof($modules_array); $i<$n; $i++) {
       $class = substr($modules_array[$i], 0, strrpos($modules_array[$i], '.'));
 
-      if (is_object($GLOBALS[$class])) {
+      if (isset($GLOBALS[$class]) && is_object($GLOBALS[$class])) {
         if ($GLOBALS[$class]->enabled) {
           $count++;
         }
